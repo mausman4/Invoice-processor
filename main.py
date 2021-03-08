@@ -18,8 +18,6 @@ pdf_PATH = gui.fileopenbox()
 
 image = convert_pdf_to_image(pdf_PATH, 'Output_PIL')
 
-#image[0].show()
-
 if (len(image) == 0):
     print('An error has occured, please try again')
 elif(len(image) == 1):
@@ -31,6 +29,17 @@ else:
 #will substitute actual path here, this is just for my local working directory
 invoice = stt('/Users/danielwang/Documents/School/Yagmail/invoice_page_0.jpg')
 
+#Find the invoice number
+invc_num_pos = invoice.find('Invoice # : ')
+invc_num_start = invc_num_pos + 12
+invc_num_end_pos = invoice[invc_num_pos:].find('\n')
+invc_num = invoice[invc_num_start: invc_num_pos + invc_num_end_pos]
+
+#Find the company name
+cmp_pos = invoice.find('COMPANY NAME : ')
+cmp_start = cmp_pos + 15
+cmp_end_pos = invoice[cmp_pos:].find('Date/Time : ')
+cmp_name = invoice[cmp_start:cmp_pos + cmp_end_pos]
 
 #Find the subtotal
 subtotal_pos = invoice.find('SUBTOTAL: ')
@@ -55,22 +64,15 @@ total_pos = invoice[pst_pos + pst_end_pos + 1:].find("TOTAL: ") + pst_pos + pst_
 total_start = total_pos + 7
 total_end_pos = invoice[total_pos:].find("\n")
 total_cost=float(invoice[total_start: total_pos + total_end_pos])
-#print('The total cost is: ' + str(total_cost))
 
 today = date.today()
 date_today = today.strftime("%B %d %Y")
 yag = yagmail.SMTP(input('Email: '), input('Password: '))
 contents = [
-    "Hi [INSERT COMPANY NAME],\n\n\tPlease see the attached file for an invoice from: " + date_today + 
+    "Hi " + cmp_name + ",\n\n\tPlease see the attached file for invoice #: " + invc_num + ", dated: " + date_today + 
     "\n\tSubtotal: " + str(subtotal_cost) +"\nGST: " + str(gst_cost) +
     "\nPST: " + str(pst_cost) + "\nThe total cost is: " + str(total_cost) + "\n\nBest regards,\n\tDaniel", pdf_PATH
 ]
 
-yag.send(input('Recipent email: '), "Invoice: " + date_today, contents)
-
-    
-
-
-
-
+yag.send(input('Recipent email: '), "Invoice #: " + invc_num + ", " + date_today, contents)
 
